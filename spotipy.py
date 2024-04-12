@@ -12,75 +12,91 @@ from pytube import YouTube
 from moviepy.editor import VideoFileClip
 
 waiting = False
-def anim():
-    spinnerChars = ["|", "/", "—", "\\"]
-    while waiting:
-        for i in range(4):
-            if not waiting:
-                break
-            sys.stdout.write("\b" + spinnerChars[i])
-            sys.stdout.flush()
-            time.sleep(0.65)
-
-def animate(text):
-    global waiting
-    waiting = True
-    sys.stdout.write(text)
-    threading.Thread(target=anim).start()
 
 def cls():
     os.system("cls" if os.name == "nt" else "clear")
 
-def create_mp3(keyword):
-    global waiting
-    target_dir = os.path.join(os.path.expanduser('~'), 'Downloads', 'Downloaded Songs')
-    if not os.path.exists(target_dir):
-        os.makedirs(target_dir)
+target_dir = os.path.join(os.path.expanduser('~'), 'Downloads', 'Downloaded Songs')
+totalTasks = 0
+tasksDone = 0
 
-    search_keyword = keyword.replace(" ", "+")
-    cls()
-    html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + search_keyword)
-    video_ids = re.findall(r"watch\?v=(\S{11})", html.read().decode())
-    video_url = "https://www.youtube.com/watch?v=" + video_ids[0]
-
-    animate("Fetching Video... ")
-    yt = YouTube(video_url)
-    yt.streams.first().download(target_dir)
-    song_title = yt.title
-    waiting = False
-    print("\nVideo Found!")
-
-    downloaded_filename = yt.streams.first().default_filename
-    downloaded_file_path = os.path.join(target_dir, downloaded_filename)
-
-    if os.path.exists(downloaded_file_path):
-        print("Converting Video... ")
-        mp3_file_path = os.path.splitext(downloaded_file_path)[0] + ".mp3"
-        video = VideoFileClip(downloaded_file_path)
-        audio = video.audio
-        audio.write_audiofile(mp3_file_path)
-        cls()
-        video.close()
-        audio.close()
-        os.remove(downloaded_file_path)
-
-        print("Successfully created MP3 file!\n> " + song_title + ".mp3" + " created in " + target_dir)
+def updatePercent(total, done):
+    newPercent = str(int(round(done / total * 100, 0)))
+    spaces = ""
+    if len(newPercent) + 1 == 2:
+        spaces = "  "
+    elif len(newPercent) + 1 == 3:
+        spaces = " "
     else:
-        print("Error. Could not create MP3 file")
+        spaces = ""
+    sys.stdout.write("\b\b\b\b" + newPercent + "%" + spaces);
+    sys.stdout.flush()
+
+def create_mp3(keyword):
+    try:
+        global waiting
+        global tasksDone
+        global totalTasks
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir)
+    
+        search_keyword = keyword.replace(" ", "+")
+        html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + search_keyword)
+        video_ids = re.findall(r"watch\?v=(\S{11})", html.read().decode())
+        video_url = "https://www.youtube.com/watch?v=" + video_ids[0]
+        yt = YouTube(video_url)
+        yt.streams.first().download(target_dir)
+        song_title = yt.title
+        waiting = False
+    
+        downloaded_filename = yt.streams.first().default_filename
+        downloaded_file_path = os.path.join(target_dir, downloaded_filename)
+    
+        if os.path.exists(downloaded_file_path):
+            mp3_file_path = os.path.splitext(downloaded_file_path)[0] + ".mp3"
+            video = VideoFileClip(downloaded_file_path)
+            audio = video.audio
+            audio.write_audiofile(mp3_file_path, logger=None, verbose=False)
+            video.close()
+            audio.close()
+            os.remove(downloaded_file_path)
+        else:
+            cls()
+            print("Error. Could not create MP3 file")
+    except:
+        pass
+    tasksDone += 1
+    updatePercent(totalTasks, tasksDone)
+
+def download_mp3s(song_list):
+    global totalTasks
+    threads = []
+    totalTasks = len(song_list)
+    for song in song_list:
+        thread = threading.Thread(target=create_mp3, args=(song,))
+        threads.append(thread)
+        thread.start()
+        
+
+    for thread in threads:
+        thread.join()
 
 def main():
-  cls()
-  playlistUrl = input("Please paste a Spotify playlist URL: ")
-  playlistHtml = requests.get(playlistUrl).text
-  soup = BeautifulSoup(playlistHtml, "html.parser")
-  main = json.loads(base64.b64decode(soup.find(id="initial-state").contents[0]))
-  for j in main["entities"]["items"]:
-    for i in main["entities"]["items"][j]["content"]["items"]:
-      song = i["itemV2"]["data"]
-      create_mp3(song["name"] + " by " + song["artists"]["items"][0]["profile"]["name"])
-  cls()
-  print("All MP3s have been downloaded successfully!")
-
+    cls()
+    playlistUrl = input("Please paste a Spotify playlist URL: ")
+    cls()
+    sys.stdout.write("Working... 0%  ")
+    sys.stdout.flush()
+    playlistHtml = requests.get(playlistUrl).text
+    soup = BeautifulSoup(playlistHtml, "html.parser")
+    main = json.loads(base64.b64decode(soup.find(id="initial-state").contents[0]))
+    song_list = []
+    for j in main["entities"]["items"]:
+        for i in main["entities"]["items"][j]["content"]["items"]:
+            song = i["itemV2"]["data"]
+            song_list.append(song["name"] + " by " + song["artists"]["items"][0]["profile"]["name"])
+    download_mp3s(song_list)
+    print("\nMP3s downloaded to " + target_dir)
 
 if __name__ == "__main__":
     main()
