@@ -1,3 +1,1 @@
-IMPORTANT.
-
-rn the animations on the spotipy thing are broken. it works but it looks rlly weird
+just a collection of things i made in python
