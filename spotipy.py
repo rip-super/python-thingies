@@ -21,15 +21,11 @@ totalTasks = 0
 tasksDone = 0
 
 def updatePercent(total, done):
-    newPercent = str(int(round(done / total * 100, 0)))
-    spaces = ""
-    if len(newPercent) + 1 == 2:
-        spaces = "  "
-    elif len(newPercent) + 1 == 3:
-        spaces = " "
-    else:
-        spaces = ""
-    sys.stdout.write("\b\b\b\b" + newPercent + "%" + spaces);
+    barLength = 30
+    percent = round(done / total * 100, 0)
+    numEquals = int(percent / (100 / barLength))
+    numSpaces = barLength - numEquals
+    sys.stdout.write("\rDownloading Songs: [{}{}] {}%".format('=' * numEquals, ' ' * numSpaces, percent))
     sys.stdout.flush()
 
 def create_mp3(keyword):
@@ -85,7 +81,7 @@ def main():
     cls()
     playlistUrl = input("Please paste a Spotify playlist URL: ")
     cls()
-    sys.stdout.write("Working... 0%  ")
+    sys.stdout.write("Working... ")
     sys.stdout.flush()
     playlistHtml = requests.get(playlistUrl).text
     soup = BeautifulSoup(playlistHtml, "html.parser")
