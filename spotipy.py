@@ -2,7 +2,6 @@ import os
 import urllib.request
 import re
 import threading
-import time
 import sys
 import requests
 import base64

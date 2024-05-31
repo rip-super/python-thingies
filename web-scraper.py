@@ -48,7 +48,6 @@ def scrape_amazon():
     html_content = scrape_website(url, headers)
     if not html_content:
         waiting = False
-        cls()
         print("Failed to fetch Amazon search results.")
         return
 
@@ -127,18 +126,21 @@ def scrape_ebay():
     print("\nLowest price found: $" + str(prices[minPriceIndex]) + f'\nName: "{names[minPriceIndex]}"\nLink: {links[minPriceIndex]}')
     print("\n(Only \"Buy It Now\" listings are processed)\n")
 
-
-cls()
-print("-- WELCOME --")
-print("What store should would you like to scrape?")
-print("Please type an option and press enter:\n")
-print("1 - Amazon")
-print("2 - eBay")
-choice = input("\nChoice: ")
-if choice == "1":
-    scrape_amazon()
-elif choice == "2":
-    scrape_ebay()
-else:
+def main():
     cls()
-    sys.exit("Invalid input")
+    print("-- WELCOME --")
+    print("What store should would you like to scrape?")
+    print("Please type an option and press enter:\n")
+    print("1 - Amazon")
+    print("2 - eBay")
+    choice = input("\nChoice: ")
+    if choice == "1":
+        scrape_amazon()
+    elif choice == "2":
+        scrape_ebay()
+    else:
+        cls()
+        sys.exit("Invalid input")
+
+if __name__ == "__main__":
+    main()

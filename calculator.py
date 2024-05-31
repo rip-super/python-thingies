@@ -86,7 +86,7 @@ def find_factorial():
     if num < 0:
        print(f"{num}! is undefined")
     elif num == 0:
-       print(f"{num}! = 0")
+       print(f"{num}! = 1")
     else:
        for i in range(1,num + 1):
            factorial = factorial*i
@@ -213,7 +213,7 @@ elif choice == "8":
 
 elif choice == "9":
   cls()
-  num1 = float(input("What number would you like to find the logarithm of? "))
+  num1 = float(input("What is the argument of the logarithm? "))
   base = float(input("What is the base of the logarithm? "))
   print("Log to the base", base, "of", num1, "=", math.log(num1, base))
   
