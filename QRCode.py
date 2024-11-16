@@ -14,7 +14,7 @@ answer = input("Would you like to create a new QR Code or decode a QR code? (e/d
 if answer == "1":
     cls()
     data = input("What would you like to turn into a QR code?\n> ")
-    name = input("What would you like the name if the file be?\n> ")
+    name = input("What would you like the name of the file be?\n> ")
     if not (".png" in name):
         name = name + ".png"
     img = qrcode.make(data)
